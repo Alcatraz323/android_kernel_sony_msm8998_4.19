@@ -478,6 +478,81 @@ def find_out(verbose, module_dir, prefix, rel_glob, excludes, outs):
 
   return error_count
 
+def scan_no_export_headers(verbose, module_dir, prefix):
+  """Scan include/uapi kbuild for no-export-headers
+
+  This function processes the Kbuild file to scan for no-export files that
+  should not export to usr/include/uapi which is identified by adding
+  to the no-export-headers make variable.
+
+  Args:
+    verbose: Set True to print progress messages.
+    module_dir: The root directory of the kernel source.
+    prefix: The prefix with in the kernel source tree to search for headers.
+  Return:
+    lists of no-export-headers.
+  """
+
+  no_export_headers_re = re.compile(r'no-export-headers\s*\+=\s*(\S+)')
+  header_re = re.compile(r'include/uapi/')
+  full_dirs_ = os.path.join(module_dir, prefix)
+  full_dirs = [full_dirs_]
+
+  if verbose:
+    print('scan_no_export_headers: processing [%s]' % full_dirs)
+
+  full_srcs = []
+  no_export_headers_lists = []
+
+  while full_dirs:
+    full_dir = full_dirs.pop(0)
+    items = sorted(os.listdir(full_dir))
+
+    for item in items:
+      full_item = os.path.join(full_dir, item)
+
+      if os.path.isdir(full_item):
+        full_dirs.append(full_item)
+        continue
+
+      if (full_item.find('Kbuild') != -1):
+        full_srcs.append(full_item)
+
+  for full_src in full_srcs:
+    with open(full_src, 'r') as f:
+      while True:
+        line = f.readline()
+
+        if not line:
+          break
+
+        line = line.rstrip()
+
+        match = no_export_headers_re.match(line)
+
+        if match:
+          if verbose:
+            print('scan_no_export_headers: matched [%s]' % line)
+
+          if (match.group(1) == "kvm.h" or
+              match.group(1) == "kvm_para.h" or
+              match.group(1) == "a.out.h"):
+              continue
+
+          (full_src_dir_name, full_src_base_name) = full_src.split('include/uapi/')
+          no_export_header_file_name = os.path.join(os.path.dirname(full_src_base_name),match.group(1))
+
+          if verbose:
+            print('scan_no_export_headers: no_export_header_file_name = ',no_export_header_file_name)
+
+          no_export_headers_lists.append(no_export_header_file_name)
+          continue
+
+  if verbose:
+    for x in no_export_headers_lists:
+      print('scan_no_export_headers: no_export_headers_lists [%s]' % x)
+
+  return no_export_headers_lists
 
 def gen_blueprints(
     verbose, header_arch, gen_dir, arch_asm_kbuild, asm_generic_kbuild, module_dir,
@@ -533,6 +608,15 @@ def gen_blueprints(
   if header_arch == "arm64":
     exclude_srcs = ['linux/a.out.h', 'linux/kvm_para.h']
 
+  no_export_headers_lists = scan_no_export_headers(verbose, module_dir, generic_prefix)
+
+  for no_export_headers_list in no_export_headers_lists:
+    exclude_srcs.append(no_export_headers_list)
+
+  if verbose:
+    for x in exclude_srcs:
+      print('gen_blueprints : exclude_srcs [%s]' % x)
+
   # Scan the arch_asm_kbuild file for files that need to be generated and those
   # that are generic (i.e., need to be wrapped).
 
@@ -571,7 +655,6 @@ def gen_blueprints(
 
     f.write('    "%s",\n' % generic_src)
     f.write('    "%s",\n' % arch_src)
-    f.write('    "%s",\n' % techpack_src)
     f.write(']\n')
     f.write('\n')
 
@@ -648,7 +731,6 @@ def gen_blueprints(
     f.write('        "--gen_dir $(genDir) " +\n')
     f.write('        "--arch_asm_kbuild $(location %s) " +\n' % rel_arch_asm_kbuild)
     f.write('        "--arch_include_uapi $(locations %s) " +\n' % arch_src)
-    f.write('        "--techpack_include_uapi $(locations %s) " +\n' % techpack_src)
     f.write('        "--asm_generic_kbuild $(location %s) " +\n' % rel_asm_generic_kbuild)
     f.write('        "blueprints " +\n')
     f.write('        "# $(in)",\n')
@@ -680,7 +762,6 @@ def gen_blueprints(
     f.write('        "--gen_dir $(genDir) " +\n')
     f.write('        "--arch_asm_kbuild $(location %s) " +\n' % rel_arch_asm_kbuild)
     f.write('        "--arch_include_uapi $(locations %s) " +\n' % arch_src)
-    f.write('        "--techpack_include_uapi $(locations %s) " +\n' % techpack_src)
     f.write('        "--asm_generic_kbuild $(location %s) " +\n' % rel_asm_generic_kbuild)
     f.write('        "headers " +\n')
     f.write('        "--old_gen_headers_bp $(location %s) " +\n' % old_gen_headers_bp)
@@ -752,7 +833,7 @@ def gen_headers(
 
   This script generates the version.h file, the arch-specific headers including
   syscall-related generated files and wrappers around generic files, and uses
-  the headers_install tool to process other generic uapi and arch-specifc uapi
+  the headers_install tool to process other generic uapi and arch-specific uapi
   files.
 
   Args:
@@ -893,11 +974,6 @@ def main():
       required=True,
       nargs='*',
       help='The list of arch/<arch>/include/uapi header files.')
-  parser.add_argument(
-      '--techpack_include_uapi',
-      required=True,
-      nargs='*',
-      help='The list of techpack/*/include/uapi header files.')
 
   # The modes.
 
@@ -969,11 +1045,13 @@ def main():
   if args.verbose:
     print('module_dir [%s]' % module_dir)
 
+  techpack_include_uapi = []
+
 
   if args.mode == 'blueprints':
     return gen_blueprints(
         args.verbose, args.header_arch, args.gen_dir, args.arch_asm_kbuild,
-        args.asm_generic_kbuild, module_dir, rel_arch_asm_kbuild, rel_asm_generic_kbuild, args.arch_include_uapi, args.techpack_include_uapi)
+        args.asm_generic_kbuild, module_dir, rel_arch_asm_kbuild, rel_asm_generic_kbuild, args.arch_include_uapi, techpack_include_uapi)
 
   if args.mode == 'headers':
     if args.verbose:
@@ -988,7 +1066,7 @@ def main():
         args.verbose, args.header_arch, args.gen_dir, args.arch_asm_kbuild,
         args.asm_generic_kbuild, module_dir, args.old_gen_headers_bp, args.new_gen_headers_bp,
         args.version_makefile, args.arch_syscall_tool, args.arch_syscall_tbl,
-        args.headers_install, args.include_uapi, args.arch_include_uapi, args.techpack_include_uapi)
+        args.headers_install, args.include_uapi, args.arch_include_uapi, techpack_include_uapi)
 
   print('error: unknown mode: %s' % args.mode)
   return 1
