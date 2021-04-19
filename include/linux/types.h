@@ -170,6 +170,8 @@ typedef u32 phys_addr_t;
 
 typedef phys_addr_t resource_size_t;
 
+typedef u64 ion_phys_addr_t;
+
 /*
  * This type is the placeholder for a hardware interrupt number. It has to be
  * big enough to enclose whatever representation is used by a given platform.
