@@ -182,16 +182,16 @@ struct ion_flush_data {
 };
 
 struct ion_prefetch_regions {
-	__u64 sizes;
-	__u32 vmid;
-	__u32 nr_sizes;
+	unsigned int vmid;
+	size_t __user *sizes;
+	unsigned int nr_sizes;
 };
 
 struct ion_prefetch_data {
-	__u64 len;
-	__u64 regions;
-	__u32 heap_id;
-	__u32 nr_regions;
+	int heap_id;
+	unsigned long len;
+	struct ion_prefetch_regions __user *regions;
+	unsigned int nr_regions;
 };
 
 #define ION_IOC_MSM_MAGIC 'M'

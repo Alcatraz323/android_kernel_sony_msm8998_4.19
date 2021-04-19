@@ -1113,6 +1113,8 @@ struct v4l2_buffer {
 #define V4L2_QCOM_BUF_FLAG_READONLY V4L2_BUF_FLAG_READONLY
 #define V4L2_QCOM_BUF_FLAG_PERF_MODE	V4L2_BUF_FLAG_PERF_MODE
 
+#define V4L2_QCOM_BUF_DATA_CORRUPT		0x00400000
+
 /**
  * struct v4l2_exportbuffer - export of video buffer as DMABUF file descriptor
  *
@@ -1999,6 +2001,7 @@ struct v4l2_enc_idx {
 #define V4L2_ENC_CMD_STOP       (1)
 #define V4L2_ENC_CMD_PAUSE      (2)
 #define V4L2_ENC_CMD_RESUME     (3)
+#define V4L2_ENC_QCOM_CMD_FLUSH  (4)
 
 /* Flags for V4L2_ENC_CMD_STOP */
 #define V4L2_ENC_CMD_STOP_AT_GOP_END    (1 << 0)
@@ -2021,6 +2024,7 @@ struct v4l2_encoder_cmd {
 #define V4L2_CMD_FLUSH      (4)
 #define V4L2_CMD_SESSION_CONTINUE (5)
 #define V4L2_DEC_QCOM_CMD_RECONFIG_HINT  (6)
+#define V4L2_DEC_QCOM_CMD_FLUSH  (7)
 
 /* Flags for V4L2_DEC_CMD_START */
 #define V4L2_DEC_CMD_START_MUTE_AUDIO	(1 << 0)
@@ -2035,6 +2039,9 @@ struct v4l2_encoder_cmd {
 /* Flags for V4L2_CMD_FLUSH */
 #define V4L2_CMD_FLUSH_OUTPUT  (1 << 0)
 #define V4L2_CMD_FLUSH_CAPTURE (1 << 1)
+
+#define V4L2_DEC_QCOM_CMD_FLUSH_OUTPUT  (1 << 0)
+#define V4L2_DEC_QCOM_CMD_FLUSH_CAPTURE (1 << 1)
 
 #define V4L2_QCOM_CMD_FLUSH	V4L2_CMD_FLUSH
 #define V4L2_QCOM_CMD_SESSION_CONTINUE	V4L2_CMD_SESSION_CONTINUE
