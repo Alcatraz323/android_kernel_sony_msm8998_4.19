@@ -93,6 +93,7 @@ enum ion_heap_type {
 struct ion_allocation_data {
 	size_t len;
 	size_t align;
+	unsigned int fd;
 	unsigned int heap_id_mask;
 	unsigned int flags;
 	ion_user_handle_t handle;
@@ -196,6 +197,15 @@ struct ion_heap_query {
  * be retrieved via ION_IOC_IMPORT.
  */
 #define ION_IOC_SHARE		_IOWR(ION_IOC_MAGIC, 4, struct ion_fd_data)
+
+/**
+ * DOC: ION_IOC_HEAP_QUERY - information about available heaps
+ *
+ * Takes an ion_heap_query structure and populates information about
+ * available Ion heaps.
+ */
+#define ION_IOC_HEAP_QUERY     _IOWR(ION_IOC_MAGIC, 8, \
+					struct ion_heap_query)
 
 /**
  * DOC: ION_IOC_IMPORT - imports a shared file descriptor
