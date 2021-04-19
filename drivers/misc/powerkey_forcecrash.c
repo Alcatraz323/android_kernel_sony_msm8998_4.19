@@ -31,7 +31,7 @@ static struct wake_lock powerkey_lock;
 static int forcecrash_on;
 module_param(forcecrash_on, int, S_IRUGO | S_IWUSR);
 
-static void forcecrash_timeout(unsigned long data)
+static void forcecrash_timeout(struct timer_list * timer)
 {
 	panic("Force crash triggered!!!\n");
 }
@@ -146,8 +146,7 @@ static struct input_handler powerkey_input_handler = {
 
 static int __init powerkey_forcecrash_init(void)
 {
-	init_timer(&forcecrash_timer);
-	forcecrash_timer.function = forcecrash_timeout;
+	init_timer(&forcecrash_timer, forcecrash_timeout);
 	wake_lock_init(&powerkey_lock, WAKE_LOCK_SUSPEND,
 			PKEY_FORCECRASH_DEV_NAME);
 	return input_register_handler(&powerkey_input_handler);

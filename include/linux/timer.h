@@ -120,6 +120,13 @@ static inline void init_timer_on_stack_key(struct timer_list *timer,
 	init_timer_on_stack_key((_timer), (_fn), (_flags), NULL, NULL)
 #endif
 
+#define init_timer(timer, fn)						\
+	__init_timer((timer), (fn), 0)
+#define init_timer_deferrable(timer, fn)					\
+	__init_timer((timer), (fn), TIMER_DEFERRABLE)
+#define init_timer_on_stack(timer, fn)					\
+	__init_timer_on_stack((timer), (fn), 0)
+
 /**
  * timer_setup - prepare a timer for first use
  * @timer: the timer in question

@@ -47,6 +47,7 @@
 #include <linux/regulator/consumer.h>
 #include <linux/types.h>
 #include <linux/ktime.h>
+#include <linux/pinctrl/consumer.h>
 #include "tcs3490.h"
 
 //
