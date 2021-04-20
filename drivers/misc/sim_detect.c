@@ -183,10 +183,10 @@ static irqreturn_t sim_detect_isr(int irq, void *data)
 	return IRQ_HANDLED;
 }
 
-static void sim_detect_det_tmr_func(unsigned long func_data)
+static void sim_detect_det_tmr_func(struct timer_list *timer)
 {
 	struct sim_detect_event_data *edata =
-		(struct sim_detect_event_data *)func_data;
+		(struct sim_detect_event_data *)timer->data;
 
 	schedule_work(&edata->det_work);
 }

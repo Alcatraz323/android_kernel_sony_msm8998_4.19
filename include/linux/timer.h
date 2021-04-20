@@ -18,6 +18,8 @@ struct timer_list {
 	unsigned long		expires;
 	void			(*function)(struct timer_list *);
 	u32			flags;
+	unsigned long		data;
+	int			slack;
 
 #ifdef CONFIG_LOCKDEP
 	struct lockdep_map	lockdep_map;
@@ -126,6 +128,27 @@ static inline void init_timer_on_stack_key(struct timer_list *timer,
 	__init_timer((timer), (fn), TIMER_DEFERRABLE)
 #define init_timer_on_stack(timer, fn)					\
 	__init_timer_on_stack((timer), (fn), 0)
+
+#define __setup_timer(_timer, _fn, _data, _flags)			\
+	do {								\
+		__init_timer((_timer), (_fn), (_flags));			\
+		(_timer)->function = (_fn);				\
+		(_timer)->data = (_data);				\
+	} while (0)
+
+#define __setup_timer_on_stack(_timer, _fn, _data, _flags)		\
+	do {								\
+		__init_timer_on_stack((_timer), (_fn), (_flags));		\
+		(_timer)->function = (_fn);				\
+		(_timer)->data = (_data);				\
+	} while (0)
+
+#define setup_timer(timer, fn, data)					\
+	__setup_timer((timer), (fn), (data), 0)
+#define setup_timer_on_stack(timer, fn, data)				\
+	__setup_timer_on_stack((timer), (fn), (data), 0)
+#define setup_deferrable_timer_on_stack(timer, fn, data)		\
+	__setup_timer_on_stack((timer), (fn), (data), TIMER_DEFERRABLE)
 
 /**
  * timer_setup - prepare a timer for first use

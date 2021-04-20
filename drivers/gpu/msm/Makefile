@@ -19,6 +19,24 @@ msm_kgsl_core-y = \
 	kgsl_pool.o \
 	kgsl_reclaim.o
 
+obj-y = \
+	kgsl.o \
+	kgsl_trace.o \
+	kgsl_drawobj.o \
+	kgsl_ioctl.o \
+	kgsl_sharedmem.o \
+	kgsl_pwrctrl.o \
+	kgsl_pwrscale.o \
+	kgsl_mmu.o \
+	kgsl_snapshot.o \
+	kgsl_events.o \
+	kgsl_gmu_core.o \
+	kgsl_gmu.o \
+	kgsl_rgmu.o \
+	kgsl_hfi.o \
+	kgsl_pool.o \
+	kgsl_reclaim.o
+
 msm_kgsl_core-$(CONFIG_QCOM_KGSL_IOMMU) += kgsl_iommu.o
 msm_kgsl_core-$(CONFIG_DEBUG_FS) += kgsl_debugfs.o
 msm_kgsl_core-$(CONFIG_SYNC_FILE) += kgsl_sync.o

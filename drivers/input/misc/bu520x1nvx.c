@@ -27,6 +27,7 @@
 #include <linux/pm.h>
 #include <linux/slab.h>
 #include <linux/switch.h>
+#include <linux/timer.h>
 #include <linux/types.h>
 #include "bu520x1nvx.h"
 
@@ -194,10 +195,10 @@ static irqreturn_t bu520x1nvx_isr(int irq, void *data)
 	return IRQ_HANDLED;
 }
 
-static void bu520x1nvx_det_tmr_func(unsigned long func_data)
+static void bu520x1nvx_det_tmr_func(struct timer_list * timer)
 {
 	struct bu520x1nvx_event_data *edata =
-		(struct bu520x1nvx_event_data *)func_data;
+		(struct bu520x1nvx_event_data *)timer->data;
 
 	schedule_work(&edata->det_work);
 }
